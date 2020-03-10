@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Contact card project</title>
+</head>
+<body>
+    <div class="main-container">
+        <h2 class="heading-secondary heading-secondary--big">Contact card project</h2>
+        <div class="cards-container">
+        </div>
+    </div>
+    <div class="card-form__wrapper">
+        <h1 class="card-form__title">
+           <span class="heading-secondary">Add New Contact Card</span> 
+            <span class="card-form__close-btn">&#9747;</span>
+        </h1>
+        <form class="card-form">
+        <div class="form-group">
+            <label class="form-group__label" for="card-name">Your name</label>
+            <input required type="text" name="card-name" id="card-name" class="form-group__input">
+        </div>
+        <div class="form-group">
+            <label class="form-group__label" for="card-surname">Your surname</label>
+            <input required type="text" name="card-surname" id="card-surname" class="form-group__input">
+        </div>
+        <div class="form-group">
+            <label class="form-group__label" for="card-position">Your prof position</label>
+            <input required type="text" name="card-position" id="card-position" class="form-group__input">
+        </div>
+        <div class="form-group">
+            <label class="form-group__label" for="company-name">Company's name</label>
+            <input required type="text" name="company-name" id="company-name" class="form-group__input">
+        </div>
+        <div class="form-group">
+            <label class="form-group__label" for="suite-address">Suite's address</label>
+            <input required type="text" name="suite-address" id="suite-address" class="form-group__input">
+        </div>
+        <div class="form-group">
+            <label class="form-group__label" for="card-city">City</label>
+            <input required type="text" name="card-city" id="card-city" class="form-group__input">
+        </div>
+        <div class="form-group__phone">
+            <div class="form-group">
+                <label class="form-group__label" for="card-phone">Phone</label>
+                <input required type="text" inputmode="numeric" name="card-phone" id="card-phone" class="form-group__input" pattern="^[0-9 ()]+$" title="Numbers or () only, please.">
+            </div>
+            <div class="form-group">
+                <label class="form-group__label" for="card-phone-code">Phone code</label>
+                <input required type="text" inputmode="numeric" name="card-phone-code" id="card-phone-code" class="form-group__input" pattern="^[0-9 +]+$" title="Numbers or '+' only, please.">
+            </div>
+        </div>
+        <button type="submit" class="card-form__submit">
+            Add Card
+        </button>
+        </form>
+    </div>
+</body>
+</html>

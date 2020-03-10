@@ -1,0 +1,38 @@
+.main-container {
+    max-width: $main-container;
+    padding-right: 1.5rem;
+    padding-left: 1.5rem;
+    margin-right: auto;
+    margin-left: auto;
+    height: 100vh;
+    text-align: center;
+}
+.cards-container {
+    // margin-left: 1.5rem;
+    // margin-right: 1.5rem;
+    border: 1px solid white;
+    display: flex;
+    flex-wrap: wrap;
+}
+
+[class^="col-"] {
+    &:not(:last-child) {
+        margin-right: $gutter;
+        // @include respond(desktop) {
+        //     margin-right: 0;
+        // }
+    }
+
+}
+.col-1-of-3 {
+    flex: 1 1 calc((100% - 2 * #{$gutter}) / 3);
+    max-width: calc((100% - 2 * #{$gutter}) / 3);
+    margin-bottom: $gutter;
+    @include respond(tab-port) {
+        flex: 0 0 100%;
+        max-width: 100%;
+    }
+}
+.col-1-of-3:nth-child(3n + 0){
+    margin-right: 0;
+}

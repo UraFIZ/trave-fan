@@ -1,0 +1,8 @@
+button:disabled {
+    opacity: 0.5;
+    pointer-events: unset;
+    cursor: unset;
+}
+button:disabled:hover {
+    transform: scale(1);
+}
