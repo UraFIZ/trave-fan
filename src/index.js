@@ -20,15 +20,18 @@ let cardPhoneCode = document.getElementById("card-phone-code");
 const formSubmitBtn = document.querySelector(".card-form__submit");
 
 const googleMapKey = "AIzaSyCXfhB4UjwK3C6S9B4In3sJc6w7_lsdT68";
-let isEditing = false;
-
+// https://maps.googleapis.com/maps/api/geocode/json?address=Kiev&key=AIzaSyCXfhB4UjwK3C6S9B4In3sJc6w7_lsdT68
 
 const getRandomImg = () => {
-    let imgIndex = Math.round(Math.random()* photos.length-2);
+    let imgIndex = Math.round(Math.random()* photos.length-1);
+    if(imgIndex == -1) {
+        imgIndex = 0
+    }
+    console.log(imgIndex)
     return  photos[imgIndex]
 }
 
-
+console.log(getRandomImg())
 const currentCards = initiateData(cards);
 function createCards () {
     currentCards.forEach(item => createCard(item));
@@ -68,7 +71,7 @@ const createCard = (data) => {
                 <h3 class="contact-card__name heading-2">${data.name}</h3>
                 <div class="contact-card__geoposition-wrapper">
                     <a href='https://search.google.com/local/writereview?placeid=${data.placeId || ""}' class="geo-marker"></a>
-                    <p class="contact-card__geoposition">${data.currentAddress}</p><br />
+                    <p class="contact-card__geoposition">${data.currentAddress || "Kharkiv"}</p><br />
                     <span> lat: ${data.geolocation.lat || "34.568"} </span>
                     <span> lat: ${data.geolocation.lng || "50.456"} </span>
                 </div>
@@ -115,19 +118,25 @@ function initiateData(data=[]) {
 
 function addCard ()  {
     formSubmitBtn.removeEventListener("click", getUpdate)
-    formSubmitBtn.addEventListener("click",  getAdd)
-}
-async function getAdd () {
-    const city = cardCity.value;
-    const {address: currentAddress, coordObj: geolocation, placeId } = await geLocation(city);
-    const id = Math.floor(Math.random()*1000);
-    const img =  getRandomImg();
-    const newCard = prepareCardBeforeSaving(id, city, currentAddress, geolocation, placeId, img);
-    const allCards = getCardsData();
-    const newData = [...allCards, newCard];
-    setCardsData(newData);
+    formSubmitBtn.addEventListener("click", async (e)=>  {
+        e.preventDefault()
+        console.log("add")
+        const city = cardCity.value;
+        if(city) {
+            const {address: currentAddress, coordObj: geolocation, placeId } = await geLocation(city);
+            const id = Math.floor(Math.random()*1000);
+            const img =  getRandomImg();
+            const newCard = prepareCardBeforeSaving(id, city, currentAddress, geolocation, placeId, img);
+            console.log("new",newCard);
+            const allCards = getCardsData();
+            const newData = [...allCards, newCard];
+            console.log(newData);
+            setCardsData(newData);
+        }
 
+    })
 }
+
 addCard()
 function cleanFields() {
      cardName.value="";
@@ -167,21 +176,26 @@ const prepareCardBeforeSaving =(iD, city, currentAddress, geolocation, placeId, 
     return newCard;
 }
 const geLocation = async (city) => {
-    try {
-        const result  = await fetch(`https://maps.googleapis.com/maps/api/geocode/json?address=${city}&key=${googleMapKey}`);
-        const data = await result.json();
-        const {results} = data;  
-        const address = results[0].formatted_address;
-        const coordObj = results[0].geometry.location; 
-        const placeId =  results[0].place_id;
-        return   {
-            address,
-            coordObj,
-            placeId
+    if(city) {
+        try {
+            const result  = await fetch(`https://maps.googleapis.com/maps/api/geocode/json?address=${city}&key=${googleMapKey}`);
+            const data = await result.json();
+            const {results} = data;  
+
+                const address = results[0].formatted_address || "Kharkiv";
+                const coordObj = results[0].geometry.location; 
+                const placeId =  results[0].place_id;
+                return   {
+                    address,
+                    coordObj,
+                    placeId
+                }
+
+        } catch (error) {
+            console.log(error);
         }
-    } catch (error) {
-        console.log(error);
     }
+
 
 }
 function deleteCard (data){
@@ -202,7 +216,7 @@ function editCard(data) {
 })
 }
 function editItem(item) {
-
+    console.log("edit")
     const id = Number(item.target.dataset.id);
     const cardToEdit = currentCards.find(item => item.id === id);
      cardName.value = cardToEdit.name;  
@@ -217,7 +231,23 @@ function editItem(item) {
      showAddCardPage();
      let title = document.querySelector("body > div.card-form__wrapper.show > h1 > span.heading-secondary");
      title.innerHTML=`edit ${cardToEdit.name}'s contact card`
-     formSubmitBtn.removeEventListener("click",  getAdd);
+     formSubmitBtn.removeEventListener("click",  async (e)=>  {
+        e.preventDefault()
+        console.log("add")
+        const city = cardCity.value;
+        if(city) {
+            const {address: currentAddress, coordObj: geolocation, placeId } = await geLocation(city);
+            const id = Math.floor(Math.random()*1000);
+            const img =  getRandomImg();
+            const newCard = prepareCardBeforeSaving(id, city, currentAddress, geolocation, placeId, img);
+            console.log("new",newCard);
+            const allCards = getCardsData();
+            const newData = [...allCards, newCard];
+            console.log(newData);
+            setCardsData(newData);
+        }
+
+    });
      formSubmitBtn.addEventListener("click", getUpdate.bind(this, cardToEdit))
 }
 
@@ -243,6 +273,7 @@ const getUpdatedCardsArr = (data) => {
 }
 
 function setCardsData(cards) {
+    console.log(cards)
     localStorage.setItem('cards', JSON.stringify(cards));
     window.location.reload();
 }
