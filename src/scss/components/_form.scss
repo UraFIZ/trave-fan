@@ -90,3 +90,28 @@
         justify-content: space-between;
     }
   }
+  .error {
+    display: block;
+    background-color: rgba(160, 25, 25, 0.65);
+    color: white;
+    width: 100%;
+    height: 20px;
+    font-size: 1rem;
+    padding: 0.2rem;
+    transition: all .5rem ease-in-out;
+  }
+  #pattern-phone-error {
+      display: none;
+  }
+  #empty-phone-error {
+      display: none;
+  }
+  #pattern-phone-code-error {
+      display: none;
+  }
+  #empty-phone-code-error {
+      display: none;
+  }
+//   .pattern-phone-error {
+
+//   }

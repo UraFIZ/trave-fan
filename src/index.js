@@ -1,10 +1,12 @@
 import './scss/main.scss';
 import './assets/fonts/linea-basic-10.eot';
-import { cards, photos } from './api/data'
+import { cards, photos } from './api/data';
+import { getValidateField } from './form-validation';
 
 const cardsContainer = document.querySelector(".cards-container");
 
 //form 
+const form = document.querySelector("card-form");
 const cardForm = document.querySelector(".card-form__wrapper");
 const closeBtn = document.querySelector(".card-form__close-btn");
 
@@ -22,23 +24,9 @@ const formSubmitBtn = document.querySelector(".card-form__submit");
 const googleMapKey = "AIzaSyCXfhB4UjwK3C6S9B4In3sJc6w7_lsdT68";
 // https://maps.googleapis.com/maps/api/geocode/json?address=Kiev&key=AIzaSyCXfhB4UjwK3C6S9B4In3sJc6w7_lsdT68
 
-const getRandomImg = () => {
-    let imgIndex = Math.round(Math.random()* photos.length-1);
-    if(imgIndex == -1) {
-        imgIndex = 0
-    }
-    console.log(imgIndex)
-    return  photos[imgIndex]
-}
 
-console.log(getRandomImg())
-const currentCards = initiateData(cards);
-function createCards () {
-    currentCards.forEach(item => createCard(item));
-    createAddSection();
-}
-
-function createAddSection() {
+ //utilities
+ const createAddSection = () => {
     const addCard = document.createElement("div");
     const addImg = document.createElement("img");
     addImg.classList.add("contact-card__add-img");
@@ -53,6 +41,32 @@ const showAddCardPage =() => {
     cardForm.classList.add('show');
     cardName.focus();
  };
+
+const cleanFields = () => {
+    cardName.value="";
+    cardSurname.value="";
+   cardPosition.value="";
+   companyName.value="";
+   suiteAddress.value="";
+   cardPhone.value="";
+   cardPhoneCode.value="";
+   cardCity.value="";
+}
+
+const getRandomImg = () => {
+    let imgIndex = Math.round(Math.random()* photos.length-1);
+    if(imgIndex == -1) {
+        imgIndex = 0
+    }
+    return  photos[imgIndex]
+}
+
+const currentCards = initiateData(cards);
+function createCards () {
+    currentCards.forEach(item => createCard(item));
+    createAddSection();
+}
+
 const createCard = (data) => {
     const cards = document.createElement("div");
     cards.classList.add("col-1-of-3");
@@ -118,36 +132,28 @@ function initiateData(data=[]) {
 
 function addCard ()  {
     formSubmitBtn.removeEventListener("click", getUpdate)
-    formSubmitBtn.addEventListener("click", async (e)=>  {
-        e.preventDefault()
-        console.log("add")
-        const city = cardCity.value;
-        if(city) {
-            const {address: currentAddress, coordObj: geolocation, placeId } = await geLocation(city);
-            const id = Math.floor(Math.random()*1000);
-            const img =  getRandomImg();
-            const newCard = prepareCardBeforeSaving(id, city, currentAddress, geolocation, placeId, img);
-            console.log("new",newCard);
-            const allCards = getCardsData();
-            const newData = [...allCards, newCard];
-            console.log(newData);
+    formSubmitBtn.addEventListener("click", addData)
+}
+addCard()
+async function addData(e) {
+    e.preventDefault();
+    getValidateField(cardPhone, cardPhoneCode);
+    const city = cardCity.value;
+    if(city) {
+        const {address: currentAddress, coordObj: geolocation, placeId } = await geLocation(city);
+        const id = Math.floor(Math.random()*1000);
+        const img =  getRandomImg();
+        const newCard = prepareCardBeforeSaving(id, city, currentAddress, geolocation, placeId, img);
+        const allCards = getCardsData();
+        const newData = [...allCards, newCard];
+        if(cardPhone.getAttribute("data-error")=="false" && cardPhoneCode.getAttribute("data-error")=="false") {
             setCardsData(newData);
         }
-
-    })
+        
+    }
 }
 
-addCard()
-function cleanFields() {
-     cardName.value="";
-     cardSurname.value="";
-    cardPosition.value="";
-    companyName.value="";
-    suiteAddress.value="";
-    cardPhone.value="";
-    cardPhoneCode.value="";
-    cardCity.value="";
-}
+
 const prepareCardBeforeSaving =(iD, city, currentAddress, geolocation, placeId, img) => {
     const id = iD;
     const name = cardName.value;
@@ -182,7 +188,7 @@ const geLocation = async (city) => {
             const data = await result.json();
             const {results} = data;  
 
-                const address = results[0].formatted_address || "Kharkiv";
+                const address = results[0].formatted_address;
                 const coordObj = results[0].geometry.location; 
                 const placeId =  results[0].place_id;
                 return   {
@@ -219,6 +225,7 @@ function editItem(item) {
     console.log("edit")
     const id = Number(item.target.dataset.id);
     const cardToEdit = currentCards.find(item => item.id === id);
+
      cardName.value = cardToEdit.name;  
      cardSurname.value =cardToEdit.surname;
      cardPosition.value =cardToEdit.position;
@@ -229,25 +236,10 @@ function editItem(item) {
      cardPhoneCode.value =cardToEdit.phoneCode;
 
      showAddCardPage();
+
      let title = document.querySelector("body > div.card-form__wrapper.show > h1 > span.heading-secondary");
      title.innerHTML=`edit ${cardToEdit.name}'s contact card`
-     formSubmitBtn.removeEventListener("click",  async (e)=>  {
-        e.preventDefault()
-        console.log("add")
-        const city = cardCity.value;
-        if(city) {
-            const {address: currentAddress, coordObj: geolocation, placeId } = await geLocation(city);
-            const id = Math.floor(Math.random()*1000);
-            const img =  getRandomImg();
-            const newCard = prepareCardBeforeSaving(id, city, currentAddress, geolocation, placeId, img);
-            console.log("new",newCard);
-            const allCards = getCardsData();
-            const newData = [...allCards, newCard];
-            console.log(newData);
-            setCardsData(newData);
-        }
-
-    });
+     formSubmitBtn.removeEventListener("click",  addData);
      formSubmitBtn.addEventListener("click", getUpdate.bind(this, cardToEdit))
 }
 
@@ -292,6 +284,7 @@ function getCardsData() {
      })
  } 
  closeForm();
+
 
   
   

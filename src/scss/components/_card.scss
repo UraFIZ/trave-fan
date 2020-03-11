@@ -54,6 +54,7 @@
     }
     &__geoposition-wrapper {
         display: flex;
+        flex-wrap: wrap;
         margin-bottom: 0.8rem;
         & > * {
             margin-right: 1px;
