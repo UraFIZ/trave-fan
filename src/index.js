@@ -22,7 +22,6 @@ let cardPhoneCode = document.getElementById("card-phone-code");
 const formSubmitBtn = document.querySelector(".card-form__submit");
 
 const googleMapKey = "AIzaSyCXfhB4UjwK3C6S9B4In3sJc6w7_lsdT68";
-// https://maps.googleapis.com/maps/api/geocode/json?address=Kiev&key=AIzaSyCXfhB4UjwK3C6S9B4In3sJc6w7_lsdT68
 
 
  //utilities
@@ -60,13 +59,13 @@ const getRandomImg = () => {
     }
     return  photos[imgIndex]
 }
-
+//the content we see once we have visited this app
 const currentCards = initiateData(cards);
 function createCards () {
     currentCards.forEach(item => createCard(item));
     createAddSection();
 }
-
+// creation card func
 const createCard = (data) => {
     const cards = document.createElement("div");
     cards.classList.add("col-1-of-3");
@@ -85,9 +84,9 @@ const createCard = (data) => {
                 <h3 class="contact-card__name heading-2">${data.name}</h3>
                 <div class="contact-card__geoposition-wrapper">
                     <a href='https://search.google.com/local/writereview?placeid=${data.placeId || ""}' class="geo-marker"></a>
-                    <p class="contact-card__geoposition">${data.currentAddress || "Kharkiv"}</p><br />
-                    <span> lat: ${data.geolocation.lat || "34.568"} </span>
-                    <span> lat: ${data.geolocation.lng || "50.456"} </span>
+                    <p class="contact-card__geoposition">${data.currentAddress }</p><br />
+                    <span> lat: ${data.geolocation.lat } </span> &nbsp;
+                    <span> lng: ${data.geolocation.lng } </span>
                 </div>
                 <strong class="contact-card__company heading-3">${data.companyName}</strong>
                 <address class="contact-card__suite-address heading-4">${data.suiteAddress}</address>
@@ -113,11 +112,15 @@ const createCard = (data) => {
  cardsContainer.appendChild(cards)
  const deleteBtns = document.querySelectorAll(".manipulations__delete");
  const editBtns = document.querySelectorAll(".manipulations__edit");
+
+ //hold event to these buttons
  editCard(editBtns);
  deleteCard(deleteBtns);
 }
 createCards();
 
+//this func fires up while initialization. if we have data in ls we take 
+// it as our current content if no - data from api
 function initiateData(data=[]) {
     const cards = JSON.parse(localStorage.getItem('cards'));
     if(cards === null || cards.length < 1) {
@@ -129,31 +132,42 @@ function initiateData(data=[]) {
 }
 
 //crud
-
+// Due to i use on form for two operation (creation, updating) i need to 
+// take care of removing a posable previous events (getUpdate)
 function addCard ()  {
     formSubmitBtn.removeEventListener("click", getUpdate)
     formSubmitBtn.addEventListener("click", addData)
 }
 addCard()
+//if we type a city during the filling a form we call geLocation api if not - using default data to create contact card
 async function addData(e) {
     e.preventDefault();
     getValidateField(cardPhone, cardPhoneCode);
     const city = cardCity.value;
     if(city) {
-        const {address: currentAddress, coordObj: geolocation, placeId } = await geLocation(city);
-        const id = Math.floor(Math.random()*1000);
-        const img =  getRandomImg();
-        const newCard = prepareCardBeforeSaving(id, city, currentAddress, geolocation, placeId, img);
-        const allCards = getCardsData();
-        const newData = [...allCards, newCard];
-        if(cardPhone.getAttribute("data-error")=="false" && cardPhoneCode.getAttribute("data-error")=="false") {
-            setCardsData(newData);
+        try {
+            const {address: currentAddress, coordObj: geolocation, placeId } = await geLocation(city);
+            formNewDataBeforeSaving(city, currentAddress, geolocation, placeId)
+        } catch (error) {
+            console.log(error);
         }
-        
+
+    }else{
+        formNewDataBeforeSaving();
     }
 }
-
-
+// form the data to card
+const formNewDataBeforeSaving = (city="the best city ever:)", currentAddress="the best address ever:)", geolocation={lat: "love", lng: "passion"}, placeId='') => {
+    const id = Math.floor(Math.random()*1000);
+    const img =  getRandomImg();
+    const newCard = prepareCardBeforeSaving(id, city, currentAddress, geolocation, placeId, img);
+    const allCards = getCardsData();
+    const newData = [...allCards, newCard];
+    if(cardPhone.getAttribute("data-error")=="false" && cardPhoneCode.getAttribute("data-error")=="false") {
+        setCardsData(newData);
+    }
+}
+// form the submitting object to create card
 const prepareCardBeforeSaving =(iD, city, currentAddress, geolocation, placeId, img) => {
     const id = iD;
     const name = cardName.value;
@@ -181,8 +195,8 @@ const prepareCardBeforeSaving =(iD, city, currentAddress, geolocation, placeId, 
     }
     return newCard;
 }
+// calling the google map api and getting necessary data 
 const geLocation = async (city) => {
-    if(city) {
         try {
             const result  = await fetch(`https://maps.googleapis.com/maps/api/geocode/json?address=${city}&key=${googleMapKey}`);
             const data = await result.json();
@@ -200,23 +214,36 @@ const geLocation = async (city) => {
         } catch (error) {
             console.log(error);
         }
-    }
-
-
 }
+// iterate over getting delete buttons
 function deleteCard (data){
     data.forEach(function(item) {
         item.removeEventListener("click",deleteItem)
         item.addEventListener("click",deleteItem)
     })
 }
+// if we have the only obj from ls we remove it (localStorage.removeItem)
+// in previous version the page has been reloaded right after deleting (pressing btn) and when i meet the last card and deleted it
+// the app after reloading got initialized with data from api. So i decide that this option is better :)
 function deleteItem(item) {
+    console.log('item as a arguments', item);
+    const card = item.target.parentElement.parentElement.parentElement;
+    card.remove();
     const id = Number(item.target.dataset.id);
-    const newData = currentCards.filter((item)=> item.id !== id);
-    setCardsData(newData);
+    const currentData = getCardsData();
+    if(currentData.length > 0 && currentData.length != 1) {
+        const newData = currentData.filter((item)=> item.id !== id);
+        console.log("new obj", newData);
+        setCardWithoutReloading(newData)
+    }else{
+        localStorage.removeItem("cards");
+    }
+   
+    // setCardsData(newData);
 }
+//the main idea of this func is to check whether the city value has been changed during editing data  or not. If no - not to call api
 function editCard(data) {
-    data.forEach((item, inx)=> {
+    data.forEach((item)=> {
         item.removeEventListener("click", editItem)
         item.addEventListener("click", editItem)
 })
@@ -240,18 +267,26 @@ function editItem(item) {
      let title = document.querySelector("body > div.card-form__wrapper.show > h1 > span.heading-secondary");
      title.innerHTML=`edit ${cardToEdit.name}'s contact card`
      formSubmitBtn.removeEventListener("click",  addData);
-     formSubmitBtn.addEventListener("click", getUpdate.bind(this, cardToEdit))
+     formSubmitBtn.addEventListener("click",getUpdate.bind(this,cardToEdit))
 }
 
 async function getUpdate(cardToEdit) {
+    const [, event] = arguments;
+    event.preventDefault();
+    getValidateField(cardPhone, cardPhoneCode);
     const city = cardCity.value;
-    if(cardToEdit.city != city) {
+    if(cardToEdit.city != city && city.length > 0) {
         const {address: currentAddress, coordObj: geolocation, placeId } = await geLocation(city);
         const newCard = prepareCardBeforeSaving(cardToEdit.id, city, currentAddress, geolocation, placeId, cardToEdit.img);
-        setCardsData(getUpdatedCardsArr(newCard));
+        if(cardPhone.getAttribute("data-error")=="false" && cardPhoneCode.getAttribute("data-error")=="false") {
+            setCardsData(getUpdatedCardsArr(newCard));
+        }
+        
     }else{
         const newCard = prepareCardBeforeSaving(cardToEdit.id, cardToEdit.city, cardToEdit.currentAddress, cardToEdit.geolocation, cardToEdit.placeId, cardToEdit.img);
-        setCardsData(getUpdatedCardsArr(newCard));
+        if(cardPhone.getAttribute("data-error")=="false" && cardPhoneCode.getAttribute("data-error")=="false") {
+            setCardsData(getUpdatedCardsArr(newCard));
+        }
     }
 }
 const getUpdatedCardsArr = (data) => {
@@ -268,6 +303,9 @@ function setCardsData(cards) {
     console.log(cards)
     localStorage.setItem('cards', JSON.stringify(cards));
     window.location.reload();
+}
+function setCardWithoutReloading(cards){
+    localStorage.setItem('cards', JSON.stringify(cards));
 }
 function getCardsData() {
     const cards = JSON.parse(localStorage.getItem('cards'));
