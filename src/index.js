@@ -321,6 +321,7 @@ function getCardsData() {
 
      })
  } 
+ 
  closeForm();
 
 
