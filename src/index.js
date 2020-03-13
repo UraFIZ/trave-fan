@@ -5,6 +5,8 @@ import { getValidateField } from './form-validation';
 
 const cardsContainer = document.querySelector(".cards-container");
 
+const popup = document.querySelector(".card-form__wrapper");
+
 //form 
 const form = document.querySelector("card-form");
 const cardForm = document.querySelector(".card-form__wrapper");
@@ -38,6 +40,7 @@ const googleMapKey = "AIzaSyCXfhB4UjwK3C6S9B4In3sJc6w7_lsdT68";
 }
 const showAddCardPage =() => {
     cardForm.classList.add('show');
+    getPopupFullWidth();
     cardName.focus();
  };
 
@@ -324,6 +327,15 @@ function getCardsData() {
  
  closeForm();
 
+
+
+ function getPopupFullWidth() {
+    const fullHeight = document.querySelector(".main-container").clientHeight;
+    const windowHeight = window.screen.height;
+
+    popup.style.height = `${fullHeight < windowHeight ? windowHeight : fullHeight+70}px`;
+
+ }
 
   
   
